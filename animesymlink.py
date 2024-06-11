@@ -3,14 +3,11 @@ import re
 import time
 import colorama
 from colorama import Fore, Style
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 
 colorama.init()
 
-
 SOURCE_DIR = '/path/to/source'
-DEST_DIR = '/path/to/symlinkdestination'
+DEST_DIR = '/path/to/destination'
 
 # Regex to match files
 EPISODE_PATTERN = re.compile(r'(.*) - (\d{2,4})(?: (\[?\(?\d{3,4}p\)?\]?))?')
@@ -22,8 +19,6 @@ def create_symlink(source, destination):
             os.symlink(source, destination)
             print(f"{Fore.GREEN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Pattern Matched for file {source}{Style.RESET_ALL}")
             print(f"{Fore.GREEN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Symlink created: {destination} -> {source}{Style.RESET_ALL}")
-        else:
-            print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Symlink already exists: {destination}{Style.RESET_ALL}")
     except FileExistsError:
         print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Symlink creation failed, already exists: {destination}{Style.RESET_ALL}")
 
@@ -41,44 +36,17 @@ def process_file(file_path):
         new_path = os.path.join(DEST_DIR, new_filename)
         create_symlink(file_path, new_path)
 
-def scan_existing_files(directory):
-    """Scans the directory and processes existing files that match the pattern."""
-    for root, _, files in os.walk(directory):
+def scan_source_directory():
+    """Scans the source directory and processes new/modified files that match the pattern."""
+    for root, _, files in os.walk(SOURCE_DIR):
         for file in files:
             process_file(os.path.join(root, file))
 
-class EpisodeHandler(FileSystemEventHandler):
-    def __init__(self):
-        self.processed_files = set()
-
-    def on_created(self, event):
-        if not event.is_directory:
-            file_path = event.src_path
-            if file_path not in self.processed_files:
-                self.processed_files.add(file_path)
-                process_file(file_path)
-
-    def on_modified(self, event):
-        if not event.is_directory:
-            file_path = event.src_path
-            if file_path not in self.processed_files:
-                self.processed_files.add(file_path)
-                process_file(file_path)
-
 def main():
-    scan_existing_files(SOURCE_DIR)
-
-    event_handler = EpisodeHandler()
-    observer = Observer()
-    observer.schedule(event_handler, SOURCE_DIR, recursive=True)
-    observer.start()
-    print(f"{Fore.CYAN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Started monitoring {SOURCE_DIR}{Style.RESET_ALL}")
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
+    while True:
+        scan_source_directory()
+        print(f"{Fore.CYAN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Scanned {SOURCE_DIR}. Sleeping for 1 minute...{Style.RESET_ALL}")
+        time.sleep(60)
 
 if __name__ == "__main__":
     main()
