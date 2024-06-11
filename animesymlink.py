@@ -40,8 +40,6 @@ def process_file(file_path):
             new_filename = f"{show_name} - E{episode_number}"
         new_path = os.path.join(DEST_DIR, new_filename)
         create_symlink(file_path, new_path)
-    else:
-        print(f"[{time.strftime('%d/%m/%y %H:%M:%S')}] Pattern did not match for file: {file_path}")
 
 def scan_existing_files(directory):
     """Scans the directory and processes existing files that match the pattern."""
