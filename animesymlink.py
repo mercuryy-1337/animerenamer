@@ -11,6 +11,8 @@ DEST_DIR = '/path/to/destination'
 
 # Regex to match files
 EPISODE_PATTERN = re.compile(r'(.*) - (\d{2,4})(?: (\[?\(?\d{3,4}p\)?\]?))?')
+# Regex to exclude files with season/episode format like S00E00
+SEASON_EPISODE_PATTERN = re.compile(r'.*S\d{2}E\d{2}.*', re.IGNORECASE)
 
 def create_symlink(source, destination):
     """Creates a symbolic link from source to destination if it doesn't already exist."""
@@ -24,7 +26,11 @@ def create_symlink(source, destination):
 
 def process_file(file_path):
     """Processes a single file and creates a symlink if it matches the pattern."""
-    match = EPISODE_PATTERN.match(os.path.basename(file_path))
+    filename = os.path.basename(file_path)
+    if SEASON_EPISODE_PATTERN.match(filename):
+        print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Skipping file with season/episode format: {filename}{Style.RESET_ALL}")
+        return
+    match = EPISODE_PATTERN.match(filename)
     if match:
         show_name = match.group(1)
         episode_number = match.group(2)
