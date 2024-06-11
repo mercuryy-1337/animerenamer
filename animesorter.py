@@ -22,9 +22,10 @@ def create_symlink(source, destination):
     try:
         if not os.path.exists(destination):
             os.makedirs(os.path.dirname(destination), exist_ok=True)
-            os.symlink(source, destination)
+            symlink_destination = destination + ".mkv" 
+            os.symlink(source, symlink_destination)
             print(f"{Fore.GREEN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Pattern Matched for file {source}{Style.RESET_ALL}")
-            print(f"{Fore.GREEN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Symlink created: {destination} -> {source}{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Symlink created: {symlink_destination} -> {source}{Style.RESET_ALL}")
     except FileExistsError:
         print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Symlink creation failed, already exists: {destination}{Style.RESET_ALL}")
 
