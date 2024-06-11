@@ -7,7 +7,7 @@ from collections import defaultdict
 
 colorama.init()
 
-SOURCE_DIR = '/path/to/sourcefolder'
+SOURCE_DIR = '/path/to/sourceforlder'
 DEST_DIR = '/path/to/symlinkdestination'
 
 # Regex to match files
@@ -37,6 +37,7 @@ def process_file(file_path):
     match = EPISODE_PATTERN.match(filename)
     if match:
         show_name = match.group(1)
+        folder_name = ' '.join(show_name.split(' ')[:-1])
         episode_number = match.group(2)
         resolution = match.group(3)
         if resolution:
@@ -51,6 +52,7 @@ def process_file(file_path):
         if season_match:
             season_number = season_match.group(1)
             season_folder = f"Season {int(season_number)}"
+            show_name = ' '.join(show_name.split(' ')[:-1]) 
         else:
             season_folder = "Season 1"
 
