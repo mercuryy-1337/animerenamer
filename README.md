@@ -12,6 +12,16 @@ A python script that is designed to monitor a directory for newly added or modif
 ``` sh
 pip install colorama.
 ```
+
+## Installation and setup
+1. Clone this repo 
+``` sh
+git clone https://github.com/mercuryy-1337/animerenamer.git
+```
+2. Navigate to the project directory
+``` sh 
+cd animerenamer
+```
 ## Usage
 - Adjust SOURCE_DIR and DEST_DIR variables to point to your source and destination folders respectively.
 - Run the script using Python: python animesorter.py.
