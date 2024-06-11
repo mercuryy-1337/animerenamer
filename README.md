@@ -13,3 +13,4 @@ A python script that is designed to monitor a directory for newly added or modif
 
 ```sh
 pip install watchdog
+pip install colorama
