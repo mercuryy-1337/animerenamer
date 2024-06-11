@@ -12,5 +12,5 @@ A python script that is designed to monitor a directory for newly added or modif
 - Install the required Python libraries using `pip`:
 
 ```sh
-pip install watchdog
+~pip install watchdog~
 pip install colorama
