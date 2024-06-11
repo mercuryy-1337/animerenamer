@@ -14,7 +14,7 @@ SOURCE_DIR = '/path/to/sourcefolder'
 DEST_DIR = '/path/to/destinationfolder'
 
 # Regex to match files
-EPISODE_PATTERN = re.compile(r'(.*) - (\d{2})( .*)')
+EPISODE_PATTERN = re.compile(r'(.*) - (\d{2,4})(?: (\[?\(?\d{3,4}p\)?\]?))?')
 
 def create_symlink(source, destination):
     """Creates a symbolic link from source to destination if it doesn't already exist."""
@@ -35,8 +35,11 @@ def process_file(file_path):
         logger.info(f"Pattern matched for file: {file_path}")
         show_name = match.group(1)
         episode_number = match.group(2)
-        title = match.group(3)
-        new_filename = f"{show_name} - E{episode_number}{title}"
+        resolution = match.group(3)
+        if resolution:
+            new_filename = f"{show_name} - E{episode_number} {resolution}"
+        else:
+            new_filename = f"{show_name} - E{episode_number}"
         new_path = os.path.join(DEST_DIR, new_filename)
         create_symlink(file_path, new_path)
     else:
