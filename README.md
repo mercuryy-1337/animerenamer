@@ -24,5 +24,8 @@ cd animerenamer
 ```
 ## Usage
 - Adjust SOURCE_DIR and DEST_DIR variables to point to your source and destination folders respectively.
-- Run the script using Python: python animesorter.py.
+- Run the script using Python:
+``` sh
+python3 animesorter.py
+```
 - The script will continuously monitor the source directory for new anime files and organize them into the destination directory
