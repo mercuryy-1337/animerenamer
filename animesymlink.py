@@ -31,6 +31,8 @@ def create_symlink(source, destination):
 def process_file(file_path):
     """Processes a single file and creates a symlink if it matches the pattern."""
     filename = os.path.basename(file_path)
+    # Remove square brackets and anything inside them at the start of the filename
+    filename = re.sub(r'^\[.*?\]\s*', '', filename)
     if SEASON_EPISODE_PATTERN.match(filename):
         print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Skipping file with season/episode format: {filename}{Style.RESET_ALL}")
         return
