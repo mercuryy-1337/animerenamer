@@ -1,17 +1,16 @@
 import os
 import re
 import time
-import logging
+import colorama
+from colorama import Fore, Style
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-# some logging for troubleshooting purposes
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
-logger = logging.getLogger()
+colorama.init()
 
 
-SOURCE_DIR = '/path/to/sourcefolder'
-DEST_DIR = '/path/to/destinationfolder'
+SOURCE_DIR = '/path/to/source'
+DEST_DIR = '/path/to/symlinkdestination'
 
 # Regex to match files
 EPISODE_PATTERN = re.compile(r'(.*) - (\d{2,4})(?: (\[?\(?\d{3,4}p\)?\]?))?')
@@ -21,18 +20,17 @@ def create_symlink(source, destination):
     try:
         if not os.path.exists(destination):
             os.symlink(source, destination)
-            logger.info(f"Symlink created: {destination} -> {source}")
+            print(f"{Fore.GREEN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Pattern Matched for file {source}{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Symlink created: {destination} -> {source}{Style.RESET_ALL}")
         else:
-            logger.info(f"Symlink already exists: {destination}")
+            print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Symlink already exists: {destination}{Style.RESET_ALL}")
     except FileExistsError:
-        logger.info(f"Symlink creation failed, already exists: {destination}")
+        print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Symlink creation failed, already exists: {destination}{Style.RESET_ALL}")
 
 def process_file(file_path):
     """Processes a single file and creates a symlink if it matches the pattern."""
-    logger.info(f"Processing file: {file_path}")
     match = EPISODE_PATTERN.match(os.path.basename(file_path))
     if match:
-        logger.info(f"Pattern matched for file: {file_path}")
         show_name = match.group(1)
         episode_number = match.group(2)
         resolution = match.group(3)
@@ -43,7 +41,7 @@ def process_file(file_path):
         new_path = os.path.join(DEST_DIR, new_filename)
         create_symlink(file_path, new_path)
     else:
-        logger.info(f"Pattern did not match for file: {file_path}")
+        print(f"[{time.strftime('%d/%m/%y %H:%M:%S')}] Pattern did not match for file: {file_path}")
 
 def scan_existing_files(directory):
     """Scans the directory and processes existing files that match the pattern."""
@@ -52,18 +50,22 @@ def scan_existing_files(directory):
             process_file(os.path.join(root, file))
 
 class EpisodeHandler(FileSystemEventHandler):
-    """Handles file system events and creates symlinks for matching files."""
+    def __init__(self):
+        self.processed_files = set()
+
     def on_created(self, event):
-        logger.info(f"Created event detected: {event.src_path}")
         if not event.is_directory:
-            process_file(event.src_path)
-        else:
-            scan_existing_files(event.src_path)
+            file_path = event.src_path
+            if file_path not in self.processed_files:
+                self.processed_files.add(file_path)
+                process_file(file_path)
 
     def on_modified(self, event):
-        logger.info(f"Modified event detected: {event.src_path}")
         if not event.is_directory:
-            process_file(event.src_path)
+            file_path = event.src_path
+            if file_path not in self.processed_files:
+                self.processed_files.add(file_path)
+                process_file(file_path)
 
 def main():
     scan_existing_files(SOURCE_DIR)
@@ -72,7 +74,7 @@ def main():
     observer = Observer()
     observer.schedule(event_handler, SOURCE_DIR, recursive=True)
     observer.start()
-    logger.info(f"Started monitoring {SOURCE_DIR}")
+    print(f"{Fore.CYAN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Started monitoring {SOURCE_DIR}{Style.RESET_ALL}")
     try:
         while True:
             time.sleep(1)
