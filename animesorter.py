@@ -20,7 +20,8 @@ def create_symlink(source, destination):
     try:
         if not os.path.exists(destination):
             os.makedirs(os.path.dirname(destination), exist_ok=True)
-            symlink_destination = destination + ".mkv" 
+            file_extension = os.path.splitext(source)[1]  # Extract the file extension
+            symlink_destination = destination + file_extension
             os.symlink(source, symlink_destination)
             print(f"{Fore.GREEN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Pattern Matched for file {source}{Style.RESET_ALL}")
             print(f"{Fore.GREEN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Symlink created: {symlink_destination} -> {source}{Style.RESET_ALL}")
@@ -50,7 +51,7 @@ def process_file(file_path, dest_dir):
         
         # Determine the destination folder and create it
         season_match = SEASON_PATTERN.search(filename)
-        if season_match:
+        if (season_match):
             season_number = season_match.group(1)
             season_folder = f"Season {int(season_number)}"
             show_name = ' '.join(show_name.split(' ')[:-1]) 
