@@ -23,9 +23,8 @@ git clone https://github.com/mercuryy-1337/animerenamer.git
 cd animerenamer
 ```
 ## Usage
-- Adjust SOURCE_DIR and DEST_DIR variables to point to your source and destination folders respectively.
-- Run the script using Python:
+- Run the script using Python, specifying the source and destination directories.
 ``` sh
-python3 animesorter.py
+python3 animesorter.py /path/to/sourcefolder /path/to/symlinkdestination
 ```
 - The script will continuously monitor the source directory for new anime files and organize them into the destination directory
