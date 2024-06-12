@@ -1,14 +1,12 @@
 import os
 import re
 import time
+import argparse
 import colorama
 from colorama import Fore, Style
 from collections import defaultdict
 
 colorama.init()
-
-SOURCE_DIR = '/path/to/sourceforlder'
-DEST_DIR = '/path/to/symlinkdestination'
 
 # Regex to match files
 EPISODE_PATTERN = re.compile(r'(.*) - (\d{2,4})(?: (\[?\(?\d{3,4}p\)?\]?))?')
@@ -29,7 +27,7 @@ def create_symlink(source, destination):
     except FileExistsError:
         print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Symlink creation failed, already exists: {destination}{Style.RESET_ALL}")
 
-def process_file(file_path):
+def process_file(file_path, dest_dir):
     """Processes a single file and creates a symlink if it matches the pattern."""
     filename = os.path.basename(file_path)
     # Remove square brackets and anything inside them at the start of the filename
@@ -59,17 +57,17 @@ def process_file(file_path):
         else:
             season_folder = "Season 1"
 
-        show_folder = os.path.join(DEST_DIR, show_name.strip(), season_folder)
+        show_folder = os.path.join(dest_dir, show_name.strip(), season_folder)
         new_path = os.path.join(show_folder, new_filename)
         
         create_symlink(file_path, new_path)
 
-def scan_source_directory():
+def scan_source_directory(source_dir, dest_dir):
     """Scans the source directory and processes new/modified files that match the pattern."""
     folders_files = defaultdict(list)
     
     # Gather files in each directory
-    for root, _, files in os.walk(SOURCE_DIR):
+    for root, _, files in os.walk(source_dir):
         for file in files:
             file_path = os.path.join(root, file)
             filename = os.path.basename(file_path)
@@ -82,12 +80,17 @@ def scan_source_directory():
             print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Skipping folder with multiple matching files: {folder}{Style.RESET_ALL}")
             continue
         for file_path in files:
-            process_file(file_path)
+            process_file(file_path, dest_dir)
 
 def main():
+    parser = argparse.ArgumentParser(description="Anime Renamer Script")
+    parser.add_argument('source_dir', help="Source directory to monitor for anime files")
+    parser.add_argument('dest_dir', help="Destination directory to create symlinks")
+    args = parser.parse_args()
+
     while True:
-        scan_source_directory()
-        print(f"{Fore.CYAN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Scanned {SOURCE_DIR}. Sleeping for 1 minute...{Style.RESET_ALL}")
+        scan_source_directory(args.source_dir, args.dest_dir)
+        print(f"{Fore.CYAN}[{time.strftime('%d/%m/%y %H:%M:%S')}] Scanned {args.source_dir}. Sleeping for 1 minute...{Style.RESET_ALL}")
         time.sleep(60)
 
 if __name__ == "__main__":
