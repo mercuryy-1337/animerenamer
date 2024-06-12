@@ -1,0 +1,15 @@
+import os
+import time
+import colorama
+from colorama import Fore, Style
+
+colorama.init()
+
+def remove_broken_symlinks(dest_dir):
+    """Removes broken symlinks from the destination directory."""
+    for root, _, files in os.walk(dest_dir):
+        for file in files:
+            file_path = os.path.join(root, file)
+            if os.path.islink(file_path) and not os.path.exists(os.readlink(file_path)):
+                os.remove(file_path)
+                print(f"{Fore.RED}[{time.strftime('%d/%m/%y %H:%M:%S')}] Removed broken symlink: {file_path}{Style.RESET_ALL}")
