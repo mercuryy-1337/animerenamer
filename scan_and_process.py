@@ -7,6 +7,11 @@ from collections import defaultdict
 
 colorama.init()
 
+ARC_TO_SEASON = {
+    "Hashira Geiko-hen": 5,
+    
+}
+
 # Regex to match files
 EPISODE_PATTERN = re.compile(r'(.*) - (\d{2,4})(?: (\[?\(?\d{3,4}p\)?\]?))?')
 # Regex to exclude files with season/episode format like S00E00
@@ -49,15 +54,27 @@ def process_file(file_path, dest_dir):
             new_filename = f"{show_name} - E{episode_number}"
         
         # Determine the destination folder and create it
-        season_match = SEASON_PATTERN.search(filename)
-        if season_match:
-            season_number = season_match.group(1)
-            season_folder = f"Season {int(season_number)}"
-            show_name = ' '.join(show_name.split(' ')[:-1]) 
-        else:
-            season_folder = "Season 1"
+        season_number = 1
+        arc_found = False
+        for arc, season in ARC_TO_SEASON.items():
+            if arc in show_name:
+                season_number = season
+                arc_found = True
+                show_name = show_name.replace(f" - {arc}", "").strip()  # Remove arc from show name
+                print(show_name)
+                break
+        
+        if not arc_found:
+            season_match = SEASON_PATTERN.search(filename)
+            if season_match:
+                season_number = int(season_match.group(1))
+                show_name = ' '.join(show_name.split(' ')[:-1])
+        
+        season_folder = f"Season {season_number}"
+        
 
         show_folder = os.path.join(dest_dir, show_name.strip(), season_folder)
+        print(show_folder)
         new_path = os.path.join(show_folder, new_filename)
         
         create_symlink(file_path, new_path)
