@@ -74,7 +74,6 @@ def process_file(file_path, dest_dir):
         
 
         show_folder = os.path.join(dest_dir, show_name.strip(), season_folder)
-        print(show_folder)
         new_path = os.path.join(show_folder, new_filename)
         
         create_symlink(file_path, new_path)
