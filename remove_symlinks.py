@@ -12,4 +12,4 @@ def remove_broken_symlinks(dest_dir):
             file_path = os.path.join(root, file)
             if os.path.islink(file_path) and not os.path.exists(os.readlink(file_path)):
                 os.remove(file_path)
-                print(f"{Fore.RED}[{time.strftime('%d/%m/%y %H:%M:%S')}] Removed broken symlink: {file_path}{Style.RESET_ALL}")
+                print(f"{Style.BRIGHT}{Fore.WHITE}[{time.strftime('%d/%m/%y %H:%M:%S')}] | {Style.NORMAL}{Fore.RED} Removed broken symlink: {file_path}{Style.RESET_ALL}")
