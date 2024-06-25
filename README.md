@@ -6,6 +6,7 @@ A python script that is designed to monitor a directory for newly added or modif
 - Matches anime files based on customizable naming patterns.
 - Creates symbolic links to organized folders in a destination directory
 - Optionally removes broken symlinks to maintain a clean destination directory.
+- Optionally refreshes your plex library
 
 ## Prerequisites
 - Python 3.x installed on your system.
@@ -26,7 +27,8 @@ cd animerenamer
 ## Usage
 - Run the script using Python, specifying the source and destination directories. **Optionally**, you can enable the removal of broken symlinks.
 ``` sh
-python3 animesorter.py /path/to/sourcefolder /path/to/symlinkdestination [--clean-symlinks]
+python3 animesorter.py /path/to/sourcefolder /path/to/symlinkdestination [--clean-symlinks] [--refresh]
 ```
 - The script will continuously monitor the source directory for new anime files and organize them into the destination directory
 - The "--clean-symlinks" flag enables the removal of broken symlinks in the destination directory.
+- The "--refresh" flag allows the script to refresh your plex library
