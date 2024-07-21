@@ -1,5 +1,6 @@
 import os
 import re
+import json
 import time
 import colorama
 from colorama import Fore, Style
@@ -7,11 +8,11 @@ from collections import defaultdict
 
 colorama.init()
 
-ARC_TO_SEASON = {
-    "Hashira Geiko-hen": 5,
-	"Hashira Geiko Hen": 5
-    
-}
+def load_arc_to_season(filepath):
+    with open(filepath, 'r') as file:
+        return json.load(file)
+
+ARC_TO_SEASON = load_arc_to_season('arcs.json')
 
 # Regex to match files
 EPISODE_PATTERN = re.compile(r'(.*) - (\d{2,4})(?: (\[?\(?\d{3,4}p\)?\]?))?')
@@ -49,12 +50,6 @@ def process_file(file_path, dest_dir, symlinks_created):
         folder_name = ' '.join(show_name.split(' ')[:-1])
         episode_number = match.group(2)
         resolution = match.group(3)
-        if resolution:
-            # Remove any square or round brackets from the resolution
-            resolution = re.sub(r'[\[\]\(\)]', '', resolution)
-            new_filename = f"{show_name} - E{episode_number} {resolution}"
-        else:
-            new_filename = f"{show_name} - E{episode_number}"
         
         # Determine the destination folder and create it
         season_number = 1
@@ -73,7 +68,14 @@ def process_file(file_path, dest_dir, symlinks_created):
                 season_number = int(season_match.group(1))
                 show_name = ' '.join(show_name.split(' ')[:-1])
         
-        season_folder = f"Season {season_number}"
+        if resolution:
+            # Remove any square or round brackets from the resolution
+            resolution = re.sub(r'[\[\]\(\)]', '', resolution)
+            new_filename = f"{show_name} - s{int(season_number):02d}e{int(episode_number):02d} {resolution}"
+        else:
+            new_filename = f"{show_name} - s{int(season_number):02d}e{int(episode_number):02d}"        
+        
+        season_folder = f"Season {int(season_number):02d}"
         
         show_folder = os.path.join(dest_dir, show_name.strip(), season_folder)
         new_path = os.path.join(show_folder, new_filename)
@@ -102,4 +104,3 @@ def scan_source_directory(source_dir, dest_dir):
             process_file(file_path, dest_dir, symlinks_created)
     
     return symlinks_created
-
