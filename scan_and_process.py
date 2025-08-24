@@ -82,7 +82,18 @@ def process_file(file_path, dest_dir, symlinks_created):
     # Remove square brackets and anything inside them at the start of the filename
     filename = re.sub(r'^\[.*?\]\s*', '', filename)
     if SEASON_EPISODE_PATTERN.match(filename):
-        print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Skipping file with season/episode format: {filename}{Style.RESET_ALL}")
+        #print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Skipping file with season/episode format: {filename}{Style.RESET_ALL}")
+        #Process properly named files
+        season_match = re.search(r'[Ss](\d{2})[Ee](\d{2})', filename)
+        if season_match:
+            season_number = int(season_match.group(1))
+            show_name = re.split(r' - S\d{2}E\d{2}', filename)[0].strip()
+
+            season_folder = f"Season {season_number}"
+            show_folder = os.path.join(dest_dir, show_name, season_folder)
+            new_path = os.path.join(show_folder, filename)
+
+            create_symlink(file_path, new_path, symlinks_created)
         return
     match = EPISODE_PATTERN.match(filename)
     if match:
