@@ -16,7 +16,7 @@ ARC_TO_SEASON = load_arc_to_season('arcs.json')
 
 # Regex to match files
 EPISODE_PATTERN = re.compile(r'(.*) - (\d{2,4})(?: (\[?\(?\d{3,4}p\)?\]?))?')
-EPISODE_PATTERN_2 = re.compile(r'(.*) - ((?:\d{2,4})|(?:S\d{2}E\d{2}))(?: (\[?\(?\d{3,4}p\)?\]?))?')
+EPISODE_PATTERN_2 = re.compile(r'(.*?)(?: - |\.|^)?(S\d{2}E\d{2}|\d{2,4})(?: (\[?\(?\d{3,4}p\)?\]?))?')
 # Regex to exclude files with season/episode format like S00E00
 SEASON_EPISODE_PATTERN = re.compile(r'.*S\d{2}E\d{2}.*', re.IGNORECASE)
 # Regex to match season/episode format like S01 - 01
@@ -40,7 +40,7 @@ def create_symlink(source, destination, symlinks_created):
             os.symlink(source, symlink_destination)
             symlinks_created.append(symlink_destination)  # Track created symlinks
             relative_source = os.path.join(os.path.basename(os.path.dirname(source)), os.path.basename(source))
-            print(f"{Style.BRIGHT}{Fore.WHITE}[{time.strftime('%d/%m/%y %H:%M:%S')}] | {Fore.GREEN} Symlink created: {Fore.LIGHTCYAN_EX}{symlink_destination}/{os.path.basename(symlink_destination)} {Fore.LIGHTMAGENTA_EX}-> {relative_source}{Style.RESET_ALL}")
+            print(f"{Style.BRIGHT}{Fore.WHITE}[{time.strftime('%d/%m/%y %H:%M:%S')}] | {Fore.GREEN} Symlink created: {Fore.LIGHTCYAN_EX}/{os.path.basename(symlink_destination)} {Fore.LIGHTMAGENTA_EX}-> {relative_source}{Style.RESET_ALL}")
     except FileExistsError:
         relative_source = os.path.join(os.path.basename(os.path.dirname(source)), os.path.basename(source))
         #print(f"{Style.BRIGHT}[{time.strftime('%d/%m/%y %H:%M:%S')}] | {Style.NORMAL}{Fore.YELLOW} Error, symlink already exists: {Fore.CYAN}'{os.path.basename(symlink_destination)}' {Fore.WHITE}->{Fore.LIGHTMAGENTA_EX} /{relative_source} {Style.RESET_ALL}")
@@ -85,15 +85,18 @@ def process_file(file_path, dest_dir, symlinks_created):
     if SEASON_EPISODE_PATTERN.match(filename):
         print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Processing file with season/episode format: {filename}{Style.RESET_ALL}")
         #Process properly named files
+        match = re.search(r's(\d{2})e(\d{2})', filename, re.IGNORECASE)
         season_match = re.search(r'[Ss](\d{2})[Ee](\d{2})', filename)
         if season_match:
             season_number = int(season_match.group(1))
-            show_name = re.split(r' - S\d{2}E\d{2}', filename)[0].strip()
-
+            season_number = int(match.group(1))
+            episode_number = int(match.group(2))
+            show_name = re.sub(r'\.', ' ', filename.lower()).strip()
+            show_name = re.split(r'(?: - )?s\d{2}e\d{2}', show_name.lower())[0].strip()
+            new_filename = f"{show_name} - s{season_number:02d}e{episode_number:02d}"
             season_folder = f"Season {season_number}"
             show_folder = os.path.join(dest_dir, show_name, season_folder)
-            new_path = os.path.join(show_folder, filename)
-
+            new_path = os.path.join(show_folder, new_filename)
             create_symlink(file_path, new_path, symlinks_created)
         return
     match = EPISODE_PATTERN.match(filename)
@@ -131,7 +134,6 @@ def process_file(file_path, dest_dir, symlinks_created):
         
         show_folder = os.path.join(dest_dir, show_name.strip(), season_folder)
         new_path = os.path.join(show_folder, new_filename)
-        
         create_symlink(file_path, new_path, symlinks_created)
 
 
