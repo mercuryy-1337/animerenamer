@@ -40,7 +40,7 @@ def create_symlink(source, destination, symlinks_created):
             os.symlink(source, symlink_destination)
             symlinks_created.append(symlink_destination)  # Track created symlinks
             relative_source = os.path.join(os.path.basename(os.path.dirname(source)), os.path.basename(source))
-            print(f"{Style.BRIGHT}{Fore.WHITE}[{time.strftime('%d/%m/%y %H:%M:%S')}] | {Fore.GREEN} Symlink created: {Fore.LIGHTCYAN_EX}{os.path.basename(symlink_destination)} {Fore.LIGHTMAGENTA_EX}-> {relative_source}{Style.RESET_ALL}")
+            print(f"{Style.BRIGHT}{Fore.WHITE}[{time.strftime('%d/%m/%y %H:%M:%S')}] | {Fore.GREEN} Symlink created: {Fore.LIGHTCYAN_EX}{symlink_destination}/{os.path.basename(symlink_destination)} {Fore.LIGHTMAGENTA_EX}-> {relative_source}{Style.RESET_ALL}")
     except FileExistsError:
         relative_source = os.path.join(os.path.basename(os.path.dirname(source)), os.path.basename(source))
         #print(f"{Style.BRIGHT}[{time.strftime('%d/%m/%y %H:%M:%S')}] | {Style.NORMAL}{Fore.YELLOW} Error, symlink already exists: {Fore.CYAN}'{os.path.basename(symlink_destination)}' {Fore.WHITE}->{Fore.LIGHTMAGENTA_EX} /{relative_source} {Style.RESET_ALL}")
@@ -145,11 +145,10 @@ def scan_source_directory(source_dir, dest_dir):
         for file in files:
             file_path = os.path.join(root, file)
             filename = os.path.basename(file_path)
-            if EPISODE_PATTERN.match(filename):
+            #Pattern 2 allows the processing of anime files that have normal season/episode patterns
+            if EPISODE_PATTERN.match(filename) or EPISODE_PATTERN_2.match(filename):
                 folders_files[root].append(file_path)
-            #Process anime files that have normal season/episode patterns
-            if EPISODE_PATTERN_2.match(filename):
-                folders_files[root].append(file_path)
+
     
     # Process files
     for folder, files in folders_files.items():
