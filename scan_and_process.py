@@ -16,6 +16,7 @@ ARC_TO_SEASON = load_arc_to_season('arcs.json')
 
 # Regex to match files
 EPISODE_PATTERN = re.compile(r'(.*) - (\d{2,4})(?: (\[?\(?\d{3,4}p\)?\]?))?')
+EPISODE_PATTERN_2 = re.compile(r'(.*) - ((?:\d{2,4})|(?:S\d{2}E\d{2}))(?: (\[?\(?\d{3,4}p\)?\]?))?')
 # Regex to exclude files with season/episode format like S00E00
 SEASON_EPISODE_PATTERN = re.compile(r'.*S\d{2}E\d{2}.*', re.IGNORECASE)
 # Regex to match season/episode format like S01 - 01
@@ -82,7 +83,7 @@ def process_file(file_path, dest_dir, symlinks_created):
     # Remove square brackets and anything inside them at the start of the filename
     filename = re.sub(r'^\[.*?\]\s*', '', filename)
     if SEASON_EPISODE_PATTERN.match(filename):
-        #print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Skipping file with season/episode format: {filename}{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Processing file with season/episode format: {filename}{Style.RESET_ALL}")
         #Process properly named files
         season_match = re.search(r'[Ss](\d{2})[Ee](\d{2})', filename)
         if season_match:
@@ -145,6 +146,9 @@ def scan_source_directory(source_dir, dest_dir):
             file_path = os.path.join(root, file)
             filename = os.path.basename(file_path)
             if EPISODE_PATTERN.match(filename):
+                folders_files[root].append(file_path)
+            #Process anime files that have normal season/episode patterns
+            if EPISODE_PATTERN_2.match(filename):
                 folders_files[root].append(file_path)
     
     # Process files
