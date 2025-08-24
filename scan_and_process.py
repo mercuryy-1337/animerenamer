@@ -2,7 +2,7 @@ import os
 import re
 import json
 import time
-import colorama
+import colorama, difflib
 from colorama import Fore, Style
 from collections import defaultdict
 
@@ -21,6 +21,14 @@ SEASON_EPISODE_PATTERN = re.compile(r'.*S\d{2}E\d{2}.*', re.IGNORECASE)
 # Regex to match season/episode format like S01 - 01
 SEASON_PATTERN = re.compile(r'S(\d{1,2}) - (\d{2})')
 
+def are_similar(folder_name, show_name, threshold=0.8):
+    """Check if the folder name is mostly the same as the show name"""
+    folder_name = re.sub(r'[^\w\s]', '', folder_name)
+    show_name = re.sub(r'[^\w\s]', '', show_name)
+    similarity = difflib.SequenceMatcher(None, folder_name, show_name).ratio()
+    #log_message('[DEBUG]', f"Name 1: {folder_name}, Name 2: {show_name}, Similarity = {similarity >= threshold}")
+    return similarity >= threshold
+
 def create_symlink(source, destination, symlinks_created):
     """Creates a symbolic link from source to destination if it doesn't already exist."""
     try:
@@ -36,13 +44,45 @@ def create_symlink(source, destination, symlinks_created):
         relative_source = os.path.join(os.path.basename(os.path.dirname(source)), os.path.basename(source))
         #print(f"{Style.BRIGHT}[{time.strftime('%d/%m/%y %H:%M:%S')}] | {Style.NORMAL}{Fore.YELLOW} Error, symlink already exists: {Fore.CYAN}'{os.path.basename(symlink_destination)}' {Fore.WHITE}->{Fore.LIGHTMAGENTA_EX} /{relative_source} {Style.RESET_ALL}")
 
+def symlink_folder(source_folder, dest_dir, symlinks_created):
+    """Symlinks a whole folder and its contents recursively, preserving structure."""
+    folder_name = os.path.basename(source_folder)
+    dest_folder = os.path.join(dest_dir, folder_name)
+
+    for root, _, files in os.walk(source_folder):
+        # Get the relative path from the source folder
+        rel_path = os.path.relpath(root, source_folder)
+        target_root = os.path.join(dest_folder, rel_path)
+
+        for file in files:
+            source_file = os.path.join(root, file)
+            dest_file = os.path.join(target_root, file)
+
+            try:
+                if not os.path.exists(dest_file):
+                    os.makedirs(os.path.dirname(dest_file), exist_ok=True)
+                    os.symlink(source_file, dest_file)
+                    symlinks_created.append(dest_file)
+                    relative_source = os.path.join(
+                        os.path.basename(os.path.dirname(source_file)),
+                        os.path.basename(source_file)
+                    )
+                    print(
+                        f"{Style.BRIGHT}{Fore.WHITE}[{time.strftime('%d/%m/%y %H:%M:%S')}] | "
+                        f"{Fore.GREEN} Symlink created: {Fore.LIGHTCYAN_EX}{os.path.basename(dest_file)} "
+                        f"{Fore.LIGHTMAGENTA_EX}-> {relative_source}{Style.RESET_ALL}"
+                    )
+            except FileExistsError:
+                pass
+
+
 def process_file(file_path, dest_dir, symlinks_created):
     """Processes a single file and creates a symlink if it matches the pattern."""
     filename = os.path.basename(file_path)
     # Remove square brackets and anything inside them at the start of the filename
     filename = re.sub(r'^\[.*?\]\s*', '', filename)
     if SEASON_EPISODE_PATTERN.match(filename):
-        #print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Skipping file with season/episode format: {filename}{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Skipping file with season/episode format: {filename}{Style.RESET_ALL}")
         return
     match = EPISODE_PATTERN.match(filename)
     if match:
@@ -82,6 +122,7 @@ def process_file(file_path, dest_dir, symlinks_created):
         
         create_symlink(file_path, new_path, symlinks_created)
 
+
 def scan_source_directory(source_dir, dest_dir):
     """Scans the source directory and processes new/modified files that match the pattern."""
     folders_files = defaultdict(list)
@@ -97,8 +138,11 @@ def scan_source_directory(source_dir, dest_dir):
     
     # Process files
     for folder, files in folders_files.items():
+        print(f"Folder: {folder}")
         if len(files) > 1:
-            #print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Skipping folder with multiple matching files: {folder}{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}[{time.strftime('%d/%m/%y %H:%M:%S')}] Found folder with multiple matching files: {folder}{Style.RESET_ALL}")
+            #ToDo: Symlink the folders and files inside as is
+            symlink_folder(folder, dest_dir, symlinks_created)
             continue
         for file_path in files:
             process_file(file_path, dest_dir, symlinks_created)
